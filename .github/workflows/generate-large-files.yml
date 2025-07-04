@@ -1,0 +1,44 @@
+name: Generate Large Test Files
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ feature/screenshot-testing ]
+
+jobs:
+  generate-files:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create directory structure
+      run: |
+        mkdir -p output/ordernew/screenshots
+        mkdir -p output/extractReorder/screenshots
+    
+    - name: Generate large PNG files
+      run: |
+        # Generate 10MB files
+        dd if=/dev/zero of=output/ordernew/screenshots/ordernew_safeway_20250101_123456.png bs=1M count=10
+        dd if=/dev/zero of=output/ordernew/screenshots/ordernew_safeway_20250102_123456.png bs=1M count=12
+        dd if=/dev/zero of=output/extractReorder/screenshots/extractReorder_safeway_20250101.png bs=1M count=15
+        dd if=/dev/zero of=output/extractReorder/screenshots/extractReorder_safeway_20250102.png bs=1M count=8
+        
+        # Generate more files
+        for i in {1..10}; do
+          dd if=/dev/zero of=output/ordernew/screenshots/test_${i}_safeway_20250101.png bs=1M count=5
+        done
+        
+        # Generate chromedriver.exe
+        dd if=/dev/zero of=chromedriver.exe bs=1M count=25
+        
+        # Add some variation to files
+        echo "PNG_FILE_SIMULATION_$(date)" >> output/ordernew/screenshots/ordernew_safeway_20250101_123456.png
+    
+    - name: Commit large files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Add large test files - $(date)"
+        git push
